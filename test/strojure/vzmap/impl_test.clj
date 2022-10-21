@@ -11,9 +11,9 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(def ^:private -e (impl/->BoxedEntry (MapEntry. :k (impl/boxed-value :x))))
+(def ^:private -e (impl/boxed-entry :k (impl/boxed-value :x)))
 
-(deftest ->BoxedEntry-t
+(deftest boxed-entry-t
   (test/are [expr result] (= result expr)
 
     (key -e) #_= :k
@@ -51,9 +51,8 @@
     (.entryAt ^IPersistentVector -e 1) #_= [1 :x]
     (.entryAt ^IPersistentVector -e 2) #_= nil
     (let [a (atom :pending)
-          e (impl/->BoxedEntry (MapEntry. :k (impl/boxed-value
-                                               (reset! a :realized)
-                                               :x)))
+          e (impl/boxed-entry :k (impl/boxed-value (reset! a :realized)
+                                                   :x))
           e (.entryAt ^IPersistentVector e 1)]
       [e @a]) #_= [[1 :x] :pending]
 
@@ -69,20 +68,18 @@
     (second (seq -e)) #_= :x
 
     (let [a (atom :pending)
-          e (impl/->BoxedEntry (MapEntry. :k (impl/boxed-value
-                                               (reset! a :realized)
-                                               :x)))]
+          e (impl/boxed-entry :k (impl/boxed-value (reset! a :realized)
+                                                   :x))]
       [(first e) @a]) #_= [:k :pending]
 
     (let [a (atom :pending)
-          e (impl/->BoxedEntry (MapEntry. :k (impl/boxed-value
-                                               (reset! a :realized)
-                                               :x)))]
+          e (impl/boxed-entry :k (impl/boxed-value (reset! a :realized)
+                                                   :x))]
       [(second e) @a]) #_= [:x :realized]
 
     (.equiv ^IPersistentVector -e -e) #_= true
     (.equiv ^IPersistentVector -e [:k :x]) #_= true
-    (.equiv ^IPersistentVector -e (impl/->BoxedEntry (MapEntry. :k (impl/boxed-value :x)))) #_= true
+    (.equiv ^IPersistentVector -e (impl/boxed-entry :k (impl/boxed-value :x))) #_= true
     (.equiv ^IPersistentVector -e [:k :y]) #_= false
 
     (sequential? -e) #_= true
@@ -94,8 +91,10 @@
   (testing "Exceptional operations"
     (test/are [expr] expr
 
-      (->> (nth -e 2) (thrown? IndexOutOfBoundsException))
-      (->> (assoc -e :x nil) (thrown? IllegalArgumentException "Key must be integer"))
+      (thrown? IndexOutOfBoundsException
+               (nth -e 2))
+      (thrown? IllegalArgumentException "Key must be integer"
+               (assoc -e :x nil))
 
       )))
 
