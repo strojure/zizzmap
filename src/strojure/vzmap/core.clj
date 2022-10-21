@@ -10,6 +10,8 @@
 
 ;; TODO: Feature: Update delayed value without realizing it.
 
+;; TODO: Metadata support
+
 (declare transient-map)
 
 (let [NA (Object.)]
@@ -97,7 +99,11 @@
         IEditableCollection
         (asTransient
           [_]
-          (transient-map (.asTransient ^IEditableCollection m))))))
+          (transient-map (.asTransient ^IEditableCollection m)))
+        impl/InternalAccess
+        (internal-map
+          [_]
+          m))))
 
   (defn transient-map
     [^ITransientMap m]
@@ -139,5 +145,74 @@
     "True if `x` is an instance of persistent map implementation."
     [x]
     (instance? persistent-map-class x)))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+#_(defmacro pending
+    [& body]
+    `(impl/boxed-value ~@body))
+
+(defmacro pending-vals
+  "Returns persistent map with every value wrapped in delayed computation.
+
+  Fir example in
+
+      (def my-map
+        (pending-vals {:a (doto :x println)}))
+
+  the code `(doto :x println)` will be evaluated only when value for `:a`
+  requested, i.e. in `(get my-map :a)`."
+  [m]
+  (assert map? m)
+  `(persistent-map ~(update-vals m (fn [v] `(impl/boxed-value ~v)))))
+
+(comment
+  (macroexpand-1 '(pending-vals {:a 1 :b 2}))
+  (clojure.walk/macroexpand-all '(pending-vals {:a 1 :b 2}))
+  )
+
+(defn assoc-pending*
+  [m k boxed-v]
+  (-> m (cond-> (persistent? m) (impl/internal-map))
+      (assoc k boxed-v)
+      (persistent-map)))
+
+(defmacro assoc-pending
+  [m k v]
+  `(assoc-pending* ~m ~k (impl/boxed-value ~v)))
+
+(comment
+  (macroexpand-1 '(assoc-pending {} :a 1))
+  (clojure.walk/macroexpand-all '(assoc-pending {} :a 1))
+  (assoc-pending {} :a (doto :x println))
+  (-> {}
+      (assoc-pending :a (doto :x println))
+      (assoc-pending :b (doto :y println))
+      (assoc-pending :c (doto :z println)))
+  (assoc {} :a :x :b :y :c :z)
+  (persistent-map {})
+  (cond-> {} (persistent? {}) (impl/internal-map))
+  (impl/internal-map (persistent-map {}))
+  (persistent? (assoc-pending {} :a (doto :x println)))
+  )
+
+(defn merge*
+  [m1 m2]
+  (persistent-map (reduce conj
+                          (cond-> (or m1 {}) (persistent? m1) (impl/internal-map))
+                          (cond-> m2 (persistent? m2) (impl/internal-map)))))
+
+(comment
+  (merge {:a 1} {:b 2})
+  (into {:a 1} {:b 2})
+  (reduce conj {:a 1} {:b 2})
+  (merge* {:a 1} {:b 2})
+  (pending-vals {:a (doto :x println)})
+  (merge* (pending-vals {:a (doto :x println)})
+          (pending-vals {:b (doto :y println)}))
+  (class (merge* (pending-vals {:a (doto :x println)})
+                 (pending-vals {:b (doto :y println)})))
+  (merge* {} (pending-vals {:a :x}))
+  )
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
