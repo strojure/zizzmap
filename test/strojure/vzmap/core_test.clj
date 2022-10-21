@@ -51,6 +51,9 @@
     (dissoc -m :b) #_= {:a :x}
     (dissoc -m :c) #_= {:a :x :b :y}
 
+    (update -m :a name) #_= {:a "x" :b :y}
+    (update -m :b name) #_= {:a :x :b "y"}
+
     (select-keys -m [:a :b]) #_= {:a :x :b :y}
     (select-keys -m [:a]) #_= {:a :x}
     (select-keys -m [:b]) #_= {:b :y}
@@ -116,6 +119,13 @@
                                                      :b :y})
             m (dissoc m :b)]
         [@a m]) #_= [:pending {:a :x}]
+
+      (let [a (atom :pending) m (map/persistent-map {:a (impl/boxed-value
+                                                          (reset! a :realized)
+                                                          :x)
+                                                     :b :y})
+            m (update m :b name)]
+        [@a m]) #_= [:pending {:a :x :b "y"}]
 
       (let [a (atom :pending) m (map/persistent-map {:a (impl/boxed-value
                                                           (reset! a :realized)

@@ -8,6 +8,8 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
+;; TODO: Feature: Update delayed value without realizing it.
+
 (let [NA (Object.)]
 
   (defn persistent-map
