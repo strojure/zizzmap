@@ -67,6 +67,13 @@
     (map/persistent? (into {:c :z} -m)) #_= false
     (map/persistent? (into -m {:c :z})) #_= true
 
+    (merge {} -m) #_= {:a :x :b :y}
+    (merge -m {}) #_= {:a :x :b :y}
+    (merge {:c :z} -m) #_= {:a :x :b :y :c :z}
+    (merge -m {:c :z}) #_= {:a :x :b :y :c :z}
+    (map/persistent? (merge {:c :z} -m)) #_= false
+    (map/persistent? (merge -m {:c :z})) #_= true
+
     (counted? -m) #_= true
     (count -m) #_= 2
 
