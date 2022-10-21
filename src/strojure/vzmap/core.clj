@@ -1,6 +1,6 @@
 (ns strojure.vzmap.core
   (:require [strojure.vzmap.impl :as impl])
-  (:import (clojure.lang IFn IPersistentMap MapEquivalence)
+  (:import (clojure.lang IEditableCollection IFn IPersistentMap ITransientMap MapEquivalence)
            (java.util Iterator Map)
            (strojure.vzmap.impl BoxedValue)))
 
@@ -9,6 +9,8 @@
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 ;; TODO: Feature: Update delayed value without realizing it.
+
+(declare transient-map)
 
 (let [NA (Object.)]
 
@@ -19,8 +21,12 @@
     (let [realized-delay (delay (into {} (map impl/map-entry) m))]
       (reify
         Map
-        (size [_] (.count m))
-        (get [this k] (.valAt this k))
+        (size
+          [_]
+          (.count m))
+        (get
+          [this k]
+          (.valAt this k))
         MapEquivalence
         IFn
         (invoke
@@ -52,33 +58,33 @@
               not-found
               (cond-> v (instance? BoxedValue v)
                         (impl/deref-value)))))
+        (entryAt
+          [_ k]
+          (impl/map-entry (.entryAt m k)))
+        (containsKey
+          [_ k]
+          (.containsKey m k))
         (assoc
           [_ k v]
           (persistent-map (.assoc m k v)))
         (assocEx
           [_ k v]
           (persistent-map (.assocEx m k v)))
-        (without
-          [_ k]
-          (persistent-map (.without m k)))
-        (containsKey
-          [_ k]
-          (.containsKey m k))
-        (entryAt
-          [_ k]
-          (impl/map-entry (.entryAt m k)))
-        (seq
-          [_]
-          (some->> (.seq m) (map impl/map-entry)))
         (cons
           [_ o]
           (persistent-map (.cons m o)))
-        (count
-          [_]
-          (.count m))
+        (without
+          [_ k]
+          (persistent-map (.without m k)))
         (empty
           [_]
           (persistent-map (.empty m)))
+        (count
+          [_]
+          (.count m))
+        (seq
+          [_]
+          (some->> (.seq m) (map impl/map-entry)))
         (equiv
           [_ o]
           (= @realized-delay o))
@@ -87,7 +93,45 @@
           (let [it (.iterator m)]
             (reify Iterator
               (hasNext [_] (.hasNext it))
-              (next [_] (some-> (.next it) impl/map-entry)))))))))
+              (next [_] (some-> (.next it) impl/map-entry)))))
+        IEditableCollection
+        (asTransient
+          [_]
+          (transient-map (.asTransient ^IEditableCollection m))))))
+
+  (defn transient-map
+    [^ITransientMap m]
+    (reify
+      ITransientMap
+      (assoc
+        [_ k v]
+        (transient-map (.assoc m k v)))
+      (conj
+        [_ o]
+        (transient-map (.conj m o)))
+      (without
+        [_ k]
+        (transient-map (.without m k)))
+      (persistent
+        [_]
+        (persistent-map (.persistent m)))
+      (count
+        [_]
+        (.count m))
+      (valAt
+        [_ k]
+        (let [v (.valAt m k NA)]
+          (if (identical? NA v)
+            nil
+            (cond-> v (instance? BoxedValue v)
+                      (impl/deref-value)))))
+      (valAt
+        [_ k not-found]
+        (let [v (.valAt m k NA)]
+          (if (identical? NA v)
+            not-found
+            (cond-> v (instance? BoxedValue v)
+                      (impl/deref-value))))))))
 
 (let [persistent-map-class (class (persistent-map {}))]
   ;; TODO: Check if it works in cljs

@@ -183,6 +183,13 @@
             v (val (find m :a))]
         [@a v]) #_= [:realized :x]
 
+      (let [a (atom :pending) m (map/persistent-map {:a (impl/boxed-value
+                                                          (reset! a :realized)
+                                                          :x)
+                                                     :b :y})
+            m (persistent! (transient m))]
+        [@a m]) #_= [:pending {:a :x, :b :y}]
+
       ))
   )
 
