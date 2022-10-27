@@ -1,6 +1,6 @@
 (ns strojure.zizzmap.core-test
   (:require [clojure.test :as test :refer [deftest]]
-            [strojure.zizzmap.core :as map]
+            [strojure.zizzmap.core :as zizz]
             [strojure.zizzmap.impl :as impl]))
 
 (set! *warn-on-reflection* true)
@@ -15,8 +15,8 @@
   (test/are [expr result] (= result expr)
 
     (let [a (atom :pending)
-          m (map/init ^::meta {:a (do (reset! a :realized)
-                                      :x)})]
+          m (zizz/init ^::meta {:a (do (reset! a :realized)
+                                       :x)})]
       {:persistent (impl/persistent? m)
        :atom @a
        :value (:a m)
@@ -32,8 +32,8 @@
   (test/are [expr result] (= result expr)
 
     (let [a (atom :pending)
-          m (map/assoc* ^::meta {} :a (do (reset! a :realized)
-                                          :x))]
+          m (zizz/assoc* ^::meta {} :a (do (reset! a :realized)
+                                           :x))]
       {:persistent (impl/persistent? m)
        :atom @a
        :value (:a m)
@@ -49,9 +49,9 @@
   (test/are [expr result] (= result expr)
 
     (let [a (atom :pending)
-          m (map/merge* ^::meta {:b :y}
-                        (map/init {:a (do (reset! a :realized)
-                                          :x)}))]
+          m (zizz/merge* ^::meta {:b :y}
+                         (zizz/init {:a (do (reset! a :realized)
+                                            :x)}))]
       {:persistent (impl/persistent? m)
        :atom @a
        :value (:a m)
