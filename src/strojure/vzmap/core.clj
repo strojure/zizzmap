@@ -148,17 +148,12 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-#_(defmacro pending
-    [& body]
-    `(impl/boxed-value ~@body))
-
-(defmacro pending-vals
+(defmacro init
   "Returns persistent map with every value wrapped in delayed computation.
 
   Fir example in
 
-      (def my-map
-        (pending-vals {:a (doto :x println)}))
+      (def my-map (init {:a (doto :x println)}))
 
   the code `(doto :x println)` will be evaluated only when value for `:a`
   requested, i.e. in `(get my-map :a)`."
@@ -167,33 +162,33 @@
   `(persistent-map ~(update-vals m (fn [v] `(impl/boxed-value ~v)))))
 
 (comment
-  (macroexpand-1 '(pending-vals {:a 1 :b 2}))
-  (clojure.walk/macroexpand-all '(pending-vals {:a 1 :b 2}))
+  (macroexpand-1 '(init {:a 1 :b 2}))
+  (clojure.walk/macroexpand-all '(init {:a 1 :b 2}))
   )
 
-(defn assoc-pending*
+(defn assoc-boxed-value
   [m k boxed-v]
   (-> m (cond-> (persistent? m) (impl/internal-map))
       (assoc k boxed-v)
       (persistent-map)))
 
-(defmacro assoc-pending
+(defmacro assoc*
   [m k v]
-  `(assoc-pending* ~m ~k (impl/boxed-value ~v)))
+  `(assoc-boxed-value ~m ~k (impl/boxed-value ~v)))
 
 (comment
-  (macroexpand-1 '(assoc-pending {} :a 1))
-  (clojure.walk/macroexpand-all '(assoc-pending {} :a 1))
-  (assoc-pending {} :a (doto :x println))
+  (macroexpand-1 '(assoc* {} :a 1))
+  (clojure.walk/macroexpand-all '(assoc* {} :a 1))
+  (assoc* {} :a (doto :x println))
   (-> {}
-      (assoc-pending :a (doto :x println))
-      (assoc-pending :b (doto :y println))
-      (assoc-pending :c (doto :z println)))
+      (assoc* :a (doto :x println))
+      (assoc* :b (doto :y println))
+      (assoc* :c (doto :z println)))
   (assoc {} :a :x :b :y :c :z)
   (persistent-map {})
   (cond-> {} (persistent? {}) (impl/internal-map))
   (impl/internal-map (persistent-map {}))
-  (persistent? (assoc-pending {} :a (doto :x println)))
+  (persistent? (assoc* {} :a (doto :x println)))
   )
 
 (defn merge*
@@ -207,12 +202,12 @@
   (into {:a 1} {:b 2})
   (reduce conj {:a 1} {:b 2})
   (merge* {:a 1} {:b 2})
-  (pending-vals {:a (doto :x println)})
-  (merge* (pending-vals {:a (doto :x println)})
-          (pending-vals {:b (doto :y println)}))
-  (class (merge* (pending-vals {:a (doto :x println)})
-                 (pending-vals {:b (doto :y println)})))
-  (merge* {} (pending-vals {:a :x}))
+  (init {:a (doto :x println)})
+  (merge* (init {:a (doto :x println)})
+          (init {:b (doto :y println)}))
+  (class (merge* (init {:a (doto :x println)})
+                 (init {:b (doto :y println)})))
+  (merge* {} (init {:a :x}))
   )
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

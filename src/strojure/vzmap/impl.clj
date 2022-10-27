@@ -25,10 +25,10 @@
   [v]
   (.deref ^IDeref (.-d ^BoxedValue v)))
 
-(defn boxed-entry
+(defn boxed-map-entry
   "Returns map entry with delayed value which is deref’ed when accessed."
   ([k, boxed-v]
-   (boxed-entry (MapEntry. k boxed-v)))
+   (boxed-map-entry (MapEntry. k boxed-v)))
   ([^MapEntry e]
    (reify
      IMapEntry
@@ -65,12 +65,10 @@
      (entryAt
        [_ i]
        (cond-> (.entryAt e i)
-         (= i 1) (boxed-entry)))
+         (= i 1) (boxed-map-entry)))
      (cons
        [_ o]
-       [(.key e)
-        (deref-value (.val e))
-        o])
+       [(.key e), (deref-value (.val e)), o])
      (assoc
        [this i o]
        (if (int? i)
@@ -79,9 +77,9 @@
      (assocN
        [this i o]
        (case i
-         0 (boxed-entry o (.val e))
+         0 (boxed-map-entry o (.val e))
          1 (if (instance? BoxedValue o)
-             (boxed-entry (.key e) o)
+             (boxed-map-entry (.key e) o)
              [(.key e) o])
          2 (.cons this o)
          (throw (IndexOutOfBoundsException.))))
@@ -120,7 +118,7 @@
   "Returns map entry, the standard one or the implementation for boxed value."
   [^IMapEntry e]
   (if (instance? BoxedValue (.val e))
-    (boxed-entry e)
+    (boxed-map-entry e)
     e))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

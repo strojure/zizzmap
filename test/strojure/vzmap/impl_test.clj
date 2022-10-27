@@ -11,9 +11,9 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(def ^:private -e (impl/boxed-entry :k (impl/boxed-value :x)))
+(def ^:private -e (impl/boxed-map-entry :k (impl/boxed-value :x)))
 
-(deftest boxed-entry-t
+(deftest boxed-map-entry-t
   (test/are [expr result] (= result expr)
 
     (key -e) #_= :k
@@ -51,8 +51,8 @@
     (.entryAt ^IPersistentVector -e 1) #_= [1 :x]
     (.entryAt ^IPersistentVector -e 2) #_= nil
     (let [a (atom :pending)
-          e (impl/boxed-entry :k (impl/boxed-value (reset! a :realized)
-                                                   :x))
+          e (impl/boxed-map-entry :k (impl/boxed-value (reset! a :realized)
+                                                       :x))
           e (.entryAt ^IPersistentVector e 1)]
       [e @a]) #_= [[1 :x] :pending]
 
@@ -68,18 +68,18 @@
     (second (seq -e)) #_= :x
 
     (let [a (atom :pending)
-          e (impl/boxed-entry :k (impl/boxed-value (reset! a :realized)
-                                                   :x))]
+          e (impl/boxed-map-entry :k (impl/boxed-value (reset! a :realized)
+                                                       :x))]
       [(first e) @a]) #_= [:k :pending]
 
     (let [a (atom :pending)
-          e (impl/boxed-entry :k (impl/boxed-value (reset! a :realized)
-                                                   :x))]
+          e (impl/boxed-map-entry :k (impl/boxed-value (reset! a :realized)
+                                                       :x))]
       [(second e) @a]) #_= [:x :realized]
 
     (.equiv ^IPersistentVector -e -e) #_= true
     (.equiv ^IPersistentVector -e [:k :x]) #_= true
-    (.equiv ^IPersistentVector -e (impl/boxed-entry :k (impl/boxed-value :x))) #_= true
+    (.equiv ^IPersistentVector -e (impl/boxed-map-entry :k (impl/boxed-value :x))) #_= true
     (.equiv ^IPersistentVector -e [:k :y]) #_= false
 
     (sequential? -e) #_= true
