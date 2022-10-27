@@ -1,5 +1,5 @@
-(ns strojure.vzmap.core
-  (:require [strojure.vzmap.impl :as impl]))
+(ns strojure.zizzmap.core
+  (:require [strojure.zizzmap.impl :as impl]))
 
 (set! *warn-on-reflection* true)
 

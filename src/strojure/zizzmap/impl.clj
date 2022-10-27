@@ -1,4 +1,4 @@
-(ns strojure.vzmap.impl
+(ns strojure.zizzmap.impl
   (:import (clojure.lang IDeref IEditableCollection IFn IMapEntry IPersistentMap
                          IPersistentVector ITransientMap MapEntry MapEquivalence)
            (java.util Iterator Map)))

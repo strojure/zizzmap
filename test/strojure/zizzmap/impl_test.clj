@@ -1,6 +1,6 @@
-(ns strojure.vzmap.impl-test
+(ns strojure.zizzmap.impl-test
   (:require [clojure.test :as test :refer [deftest testing]]
-            [strojure.vzmap.impl :as impl])
+            [strojure.zizzmap.impl :as impl])
   (:import (clojure.lang IPersistentVector MapEntry)
            (java.util Map)))
 

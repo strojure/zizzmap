@@ -1,7 +1,7 @@
-(ns strojure.vzmap.core-test
+(ns strojure.zizzmap.core-test
   (:require [clojure.test :as test :refer [deftest]]
-            [strojure.vzmap.core :as map]
-            [strojure.vzmap.impl :as impl]))
+            [strojure.zizzmap.core :as map]
+            [strojure.zizzmap.impl :as impl]))
 
 (set! *warn-on-reflection* true)
 
