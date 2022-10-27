@@ -5,8 +5,6 @@
 
 ;; TODO: Feature: Update delayed value without realizing it.
 
-;; TODO: Metadata support
-
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (defmacro init

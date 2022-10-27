@@ -1,5 +1,5 @@
 (ns strojure.zizzmap.impl
-  (:import (clojure.lang IDeref IEditableCollection IFn IMapEntry IPersistentMap
+  (:import (clojure.lang IDeref IEditableCollection IFn IMapEntry IMeta IPersistentMap
                          IPersistentVector ITransientMap MapEntry MapEquivalence)
            (java.util Iterator Map)))
 
@@ -133,90 +133,93 @@
     "Returns `IPersistentMap` implementation for the map `m` which can contain
     delayed values."
     [^IPersistentMap m]
-    (let [realized-delay (delay (into {} (map map-entry) m))]
-      (reify
-        Map
-        (size
-          [_]
-          (.count m))
-        (get
-          [this k]
-          (.valAt this k))
-        MapEquivalence
-        IFn
-        (invoke
-          [_ k]
-          (let [v (.valAt m k NA)]
-            (if (identical? NA v)
-              nil
-              (cond-> v (instance? BoxedValue v)
-                        (deref-value)))))
-        (invoke
-          [_ k not-found]
-          (let [v (.valAt m k NA)]
-            (if (identical? NA v)
-              not-found
-              (cond-> v (instance? BoxedValue v)
-                        (deref-value)))))
-        IPersistentMap
-        (valAt
-          [_ k]
-          (let [v (.valAt m k NA)]
-            (if (identical? NA v)
-              nil
-              (cond-> v (instance? BoxedValue v)
-                        (deref-value)))))
-        (valAt
-          [_ k not-found]
-          (let [v (.valAt m k NA)]
-            (if (identical? NA v)
-              not-found
-              (cond-> v (instance? BoxedValue v)
-                        (deref-value)))))
-        (entryAt
-          [_ k]
-          (map-entry (.entryAt m k)))
-        (containsKey
-          [_ k]
-          (.containsKey m k))
-        (assoc
-          [_ k v]
-          (persistent-map (.assoc m k v)))
-        (assocEx
-          [_ k v]
-          (persistent-map (.assocEx m k v)))
-        (cons
-          [_ o]
-          (persistent-map (.cons m o)))
-        (without
-          [_ k]
-          (persistent-map (.without m k)))
-        (empty
-          [_]
-          (persistent-map (.empty m)))
-        (count
-          [_]
-          (.count m))
-        (seq
-          [_]
-          (some->> (.seq m) (map map-entry)))
-        (equiv
-          [_ o]
-          (= @realized-delay o))
-        (iterator
-          [_]
-          (let [it (.iterator m)]
-            (reify Iterator
-              (hasNext [_] (.hasNext it))
-              (next [_] (some-> (.next it) map-entry)))))
-        IEditableCollection
-        (asTransient
-          [_]
-          (transient-map (.asTransient ^IEditableCollection m)))
-        InternalAccess
-        (internal-map
-          [_]
-          m))))
+    (let [realized-delay (delay (into {} (map map-entry) m))
+          meta* (.meta ^IMeta m)]
+      (cond->
+        (reify
+          Map
+          (size
+            [_]
+            (.count m))
+          (get
+            [this k]
+            (.valAt this k))
+          MapEquivalence
+          IFn
+          (invoke
+            [_ k]
+            (let [v (.valAt m k NA)]
+              (if (identical? NA v)
+                nil
+                (cond-> v (instance? BoxedValue v)
+                          (deref-value)))))
+          (invoke
+            [_ k not-found]
+            (let [v (.valAt m k NA)]
+              (if (identical? NA v)
+                not-found
+                (cond-> v (instance? BoxedValue v)
+                          (deref-value)))))
+          IPersistentMap
+          (valAt
+            [_ k]
+            (let [v (.valAt m k NA)]
+              (if (identical? NA v)
+                nil
+                (cond-> v (instance? BoxedValue v)
+                          (deref-value)))))
+          (valAt
+            [_ k not-found]
+            (let [v (.valAt m k NA)]
+              (if (identical? NA v)
+                not-found
+                (cond-> v (instance? BoxedValue v)
+                          (deref-value)))))
+          (entryAt
+            [_ k]
+            (map-entry (.entryAt m k)))
+          (containsKey
+            [_ k]
+            (.containsKey m k))
+          (assoc
+            [_ k v]
+            (persistent-map (.assoc m k v)))
+          (assocEx
+            [_ k v]
+            (persistent-map (.assocEx m k v)))
+          (cons
+            [_ o]
+            (persistent-map (.cons m o)))
+          (without
+            [_ k]
+            (persistent-map (.without m k)))
+          (empty
+            [_]
+            (persistent-map (.empty m)))
+          (count
+            [_]
+            (.count m))
+          (seq
+            [_]
+            (some->> (.seq m) (map map-entry)))
+          (equiv
+            [_ o]
+            (= @realized-delay o))
+          (iterator
+            [_]
+            (let [it (.iterator m)]
+              (reify Iterator
+                (hasNext [_] (.hasNext it))
+                (next [_] (some-> (.next it) map-entry)))))
+          IEditableCollection
+          (asTransient
+            [_]
+            (transient-map (.asTransient ^IEditableCollection m)))
+          InternalAccess
+          (internal-map
+            [_]
+            m))
+        meta* (with-meta meta*))))
 
   (defn transient-map
     "Returns `ITransientMap` implementation for the map `m` which can contain

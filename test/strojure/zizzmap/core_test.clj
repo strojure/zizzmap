@@ -15,13 +15,14 @@
   (test/are [expr result] (= result expr)
 
     (let [a (atom :pending)
-          m (map/init {:a (do (reset! a :realized)
-                              :x)})]
+          m (map/init ^::meta {:a (do (reset! a :realized)
+                                      :x)})]
       {:persistent (impl/persistent? m)
        :atom @a
        :value (:a m)
+       :meta (meta m)
        :equal (= m {:a :x})})
-    {:persistent true, :atom :pending, :value :x, :equal true}
+    {:persistent true, :atom :pending, :value :x, :meta {::meta true}, :equal true}
 
     ))
 
@@ -31,13 +32,14 @@
   (test/are [expr result] (= result expr)
 
     (let [a (atom :pending)
-          m (map/assoc* {} :a (do (reset! a :realized)
-                                  :x))]
+          m (map/assoc* ^::meta {} :a (do (reset! a :realized)
+                                          :x))]
       {:persistent (impl/persistent? m)
        :atom @a
        :value (:a m)
+       :meta (meta m)
        :equal (= m {:a :x})})
-    {:persistent true, :atom :pending, :value :x, :equal true}
+    {:persistent true, :atom :pending, :value :x, :meta {::meta true}, :equal true}
 
     ))
 
@@ -47,13 +49,15 @@
   (test/are [expr result] (= result expr)
 
     (let [a (atom :pending)
-          m (map/merge* {:b :y} (map/init {:a (do (reset! a :realized)
-                                                  :x)}))]
+          m (map/merge* ^::meta {:b :y}
+                        (map/init {:a (do (reset! a :realized)
+                                          :x)}))]
       {:persistent (impl/persistent? m)
        :atom @a
        :value (:a m)
+       :meta (meta m)
        :equal (= m {:a :x :b :y})})
-    {:persistent true, :atom :pending, :value :x, :equal true}
+    {:persistent true, :atom :pending, :value :x, :meta {::meta true}, :equal true}
 
     ))
 
