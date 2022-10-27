@@ -1,8 +1,7 @@
 (ns strojure.vzmap.core-test
-  (:require [clojure.test :as test :refer [deftest testing]])
-  (:require [strojure.vzmap.core :as map]
-            [strojure.vzmap.impl :as impl])
-  (:import (java.util Map)))
+  (:require [clojure.test :as test :refer [deftest]]
+            [strojure.vzmap.core :as map]
+            [strojure.vzmap.impl :as impl]))
 
 (set! *warn-on-reflection* true)
 
@@ -12,6 +11,50 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
+(deftest init-t
+  (test/are [expr result] (= result expr)
 
+    (let [a (atom :pending)
+          m (map/init {:a (do (reset! a :realized)
+                              :x)})]
+      {:persistent (impl/persistent? m)
+       :atom @a
+       :value (:a m)
+       :equal (= m {:a :x})})
+    {:persistent true, :atom :pending, :value :x, :equal true}
+
+    ))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+(deftest assoc*-t
+  (test/are [expr result] (= result expr)
+
+    (let [a (atom :pending)
+          m (map/assoc* {} :a (do (reset! a :realized)
+                                  :x))]
+      {:persistent (impl/persistent? m)
+       :atom @a
+       :value (:a m)
+       :equal (= m {:a :x})})
+    {:persistent true, :atom :pending, :value :x, :equal true}
+
+    ))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+(deftest merge*-t
+  (test/are [expr result] (= result expr)
+
+    (let [a (atom :pending)
+          m (map/merge* {:b :y} (map/init {:a (do (reset! a :realized)
+                                                  :x)}))]
+      {:persistent (impl/persistent? m)
+       :atom @a
+       :value (:a m)
+       :equal (= m {:a :x :b :y})})
+    {:persistent true, :atom :pending, :value :x, :equal true}
+
+    ))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

@@ -22,10 +22,14 @@
   (assert map? m)
   `(impl/persistent-map ~(update-vals m (fn [v] `(impl/boxed-value ~v)))))
 
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
 (defmacro assoc*
   "Returns persistent map with delayed evaluations of the `expr` under the key `k`."
   [m k expr]
   `(impl/assoc* ~m ~k (impl/boxed-value ~expr)))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (defn merge*
   "Given two maps with possibly delayed values returns merged persistent map."
