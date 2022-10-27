@@ -15,16 +15,16 @@
 ;;; Get existing value
 
 (get -core :a)
-;             Execution time mean : 8,433409 ns
-;    Execution time std-deviation : 0,469744 ns
-;   Execution time lower quantile : 7,879697 ns ( 2,5%)
-;   Execution time upper quantile : 8,979944 ns (97,5%)
+;             Execution time mean : 10,631153 ns
+;    Execution time std-deviation : 0,214500 ns
+;   Execution time lower quantile : 10,476636 ns ( 2,5%)
+;   Execution time upper quantile : 10,991837 ns (97,5%)
 
-(get -zizz :a)                                    ; 50% slower
-;             Execution time mean : 12,947202 ns
-;    Execution time std-deviation : 0,321168 ns
-;   Execution time lower quantile : 12,637812 ns ( 2,5%)
-;   Execution time upper quantile : 13,378630 ns (97,5%)
+(get -zizz :a)
+;             Execution time mean : 10,826143 ns
+;    Execution time std-deviation : 0,107145 ns
+;   Execution time lower quantile : 10,680422 ns ( 2,5%)
+;   Execution time upper quantile : 10,946770 ns (97,5%)
 
 (get -lazy :a)
 ;             Execution time mean : 15,024707 ns
@@ -37,16 +37,16 @@
 ;;; IFn existing value
 
 (-core :a)
-;             Execution time mean : 7,252501 ns
-;    Execution time std-deviation : 0,602015 ns
-;   Execution time lower quantile : 6,717723 ns ( 2,5%)
-;   Execution time upper quantile : 8,262110 ns (97,5%)
+;             Execution time mean : 6,564809 ns
+;    Execution time std-deviation : 0,170354 ns
+;   Execution time lower quantile : 6,376178 ns ( 2,5%)
+;   Execution time upper quantile : 6,745566 ns (97,5%)
 
 (-zizz :a)                                        ; 35% slower
-;             Execution time mean : 9,833216 ns
-;    Execution time std-deviation : 0,351018 ns
-;   Execution time lower quantile : 9,527257 ns ( 2,5%)
-;   Execution time upper quantile : 10,353496 ns (97,5%)
+;             Execution time mean : 8,892992 ns
+;    Execution time std-deviation : 0,235938 ns
+;   Execution time lower quantile : 8,553368 ns ( 2,5%)
+;   Execution time upper quantile : 9,156227 ns (97,5%)
 
 (comment
   (-lazy :a))
@@ -57,22 +57,22 @@
 ;;; Get missing value
 
 (get -core :b)
-;             Execution time mean : 4,654095 ns
-;    Execution time std-deviation : 0,386965 ns
-;   Execution time lower quantile : 4,257729 ns ( 2,5%)
-;   Execution time upper quantile : 5,103697 ns (97,5%)
+;             Execution time mean : 3,114547 ns
+;    Execution time std-deviation : 0,113178 ns
+;   Execution time lower quantile : 2,985051 ns ( 2,5%)
+;   Execution time upper quantile : 3,249071 ns (97,5%)
 
 (get -zizz :b)
-;             Execution time mean : 5,641230 ns
-;    Execution time std-deviation : 0,338573 ns
-;   Execution time lower quantile : 5,255823 ns ( 2,5%)
-;   Execution time upper quantile : 5,982961 ns (97,5%)
+;             Execution time mean : 4,316668 ns
+;    Execution time std-deviation : 0,110105 ns
+;   Execution time lower quantile : 4,165729 ns ( 2,5%)
+;   Execution time upper quantile : 4,413324 ns (97,5%)
 
 (get -lazy :b)
-;             Execution time mean : 9,693672 ns
-;    Execution time std-deviation : 0,840593 ns
-;   Execution time lower quantile : 9,123320 ns ( 2,5%)
-;   Execution time upper quantile : 11,103573 ns (97,5%)
+;             Execution time mean : 7,664370 ns
+;    Execution time std-deviation : 0,245763 ns
+;   Execution time lower quantile : 7,327563 ns ( 2,5%)
+;   Execution time upper quantile : 7,901659 ns (97,5%)
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
@@ -85,37 +85,37 @@
 ;   Execution time upper quantile : 3,541582 ns (97,5%)
 
 (zizz/init {:a 1})
-;             Execution time mean : 85,179657 ns
-;    Execution time std-deviation : 25,474225 ns
-;   Execution time lower quantile : 60,439248 ns ( 2,5%)
-;   Execution time upper quantile : 121,507634 ns (97,5%)
+;             Execution time mean : 40,740169 ns
+;    Execution time std-deviation : 5,418957 ns
+;   Execution time lower quantile : 36,433236 ns ( 2,5%)
+;   Execution time upper quantile : 46,921194 ns (97,5%)
 
 (lazy/lazy-map {:a 1})
-;             Execution time mean : 48,246205 ns
-;    Execution time std-deviation : 17,454193 ns
-;   Execution time lower quantile : 34,441823 ns ( 2,5%)
-;   Execution time upper quantile : 70,415865 ns (97,5%)
+;             Execution time mean : 37,309820 ns
+;    Execution time std-deviation : 4,009381 ns
+;   Execution time lower quantile : 33,804579 ns ( 2,5%)
+;   Execution time upper quantile : 42,172047 ns (97,5%)
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 ;;; assoc
 
 (assoc -core :b 2)
-;             Execution time mean : 46,985973 ns
-;    Execution time std-deviation : 1,926830 ns
-;   Execution time lower quantile : 44,364049 ns ( 2,5%)
-;   Execution time upper quantile : 48,689632 ns (97,5%)
+;             Execution time mean : 45,786820 ns
+;    Execution time std-deviation : 0,876607 ns
+;   Execution time lower quantile : 44,592850 ns ( 2,5%)
+;   Execution time upper quantile : 46,794216 ns (97,5%)
 
 (assoc -zizz :b 2)
-;             Execution time mean : 91,242760 ns
-;    Execution time std-deviation : 21,777259 ns
-;   Execution time lower quantile : 74,655095 ns ( 2,5%)
-;   Execution time upper quantile : 116,879852 ns (97,5%)
+;             Execution time mean : 48,847897 ns
+;    Execution time std-deviation : 1,644363 ns
+;   Execution time lower quantile : 47,081225 ns ( 2,5%)
+;   Execution time upper quantile : 50,683465 ns (97,5%)
 
 (assoc -lazy :b 2)
-;             Execution time mean : 55,723321 ns
-;    Execution time std-deviation : 14,859886 ns
-;   Execution time lower quantile : 48,254482 ns ( 2,5%)
-;   Execution time upper quantile : 81,482730 ns (97,5%)
+;             Execution time mean : 49,034480 ns
+;    Execution time std-deviation : 3,042376 ns
+;   Execution time lower quantile : 46,031159 ns ( 2,5%)
+;   Execution time upper quantile : 53,893994 ns (97,5%)
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
