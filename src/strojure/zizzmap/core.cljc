@@ -1,7 +1,9 @@
 (ns strojure.zizzmap.core
-  (:require [strojure.zizzmap.impl :as impl]))
+  (:require [strojure.zizzmap.impl :as impl])
+  #?(:cljs (:require-macros [strojure.zizzmap.core :refer [assoc*]])))
 
-(set! *warn-on-reflection* true)
+#?(:clj  (set! *warn-on-reflection* true)
+   :cljs (set! *warn-on-infer* true))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 

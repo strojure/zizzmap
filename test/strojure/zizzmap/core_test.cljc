@@ -3,7 +3,8 @@
             [strojure.zizzmap.core :as zizz]
             [strojure.zizzmap.impl :as impl]))
 
-(set! *warn-on-reflection* true)
+#?(:clj  (set! *warn-on-reflection* true)
+   :cljs (set! *warn-on-infer* true))
 
 (declare thrown?)
 
