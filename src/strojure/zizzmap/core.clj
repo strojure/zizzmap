@@ -3,8 +3,6 @@
 
 (set! *warn-on-reflection* true)
 
-;; TODO: Feature: Update delayed value without realizing it.
-
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (defmacro init
@@ -32,9 +30,21 @@
 (defn merge*
   "Given two maps with possibly delayed values returns merged persistent map."
   [m1 m2]
-  (-> (reduce conj
-              (cond-> (or m1 {}) (impl/persistent? m1) (impl/internal-map))
-              (cond-> m2 (impl/persistent? m2) (impl/internal-map)))
-      (impl/persistent-map)))
+  (impl/persistent-map (reduce conj (impl/internal-map m1) (impl/internal-map m2))))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+(defn update*
+  "Same as `clojure.core/update` but with delayed application of the function `f`."
+  ([m k f]
+   (assoc* m k (f (get m k))))
+  ([m k f x]
+   (assoc* m k (f (get m k) x)))
+  ([m k f x y]
+   (assoc* m k (f (get m k) x y)))
+  ([m k f x y z]
+   (assoc* m k (f (get m k) x y z)))
+  ([m k f x y z & more]
+   (assoc* m k (apply f (get m k) x y z more))))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

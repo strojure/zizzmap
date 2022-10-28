@@ -12,6 +12,11 @@
   (internal-map [_]
     "Returns underlying map for low-level manipulations."))
 
+(extend-protocol InternalAccess
+  nil,,,,,,,,,,, (internal-map [_] {})
+  IPersistentMap (internal-map [this] this)
+  ITransientMap, (internal-map [this] this))
+
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (deftype BoxedValue [d])
@@ -275,7 +280,7 @@
 (defn assoc*
   "Returns persistent map with assoc’ed boxed value."
   [m k boxed-v]
-  (-> m (cond-> (persistent? m) (internal-map))
+  (-> (internal-map m)
       (assoc k boxed-v)
       (persistent-map)))
 

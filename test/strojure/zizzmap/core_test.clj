@@ -62,3 +62,21 @@
     ))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+(deftest update*-t
+  (test/are [expr result] (= result expr)
+
+    (let [a (atom :pending)
+          m (-> (zizz/init ^::meta {:a (do (reset! a :realized)
+                                           :x)})
+                (zizz/update* :a name))]
+      {:persistent (impl/persistent? m)
+       :atom @a
+       :value (:a m)
+       :meta (meta m)
+       :equal (= m {:a "x"})})
+    {:persistent true, :atom :pending, :value "x", :meta {::meta true}, :equal true}
+
+    ))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
