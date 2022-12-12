@@ -1,5 +1,5 @@
 (ns strojure.zizzmap.impl
-  (:import (clojure.lang IDeref IEditableCollection IFn IMapEntry IMeta IObj
+  (:import (clojure.lang IDeref IEditableCollection IFn IKVReduce IMapEntry IMeta IObj
                          IPersistentMap IPersistentVector ITransientMap MapEntry
                          MapEquivalence)
            (java.util Iterator Map)))
@@ -207,6 +207,13 @@
       (reify Iterator
         (hasNext [_] (.hasNext it))
         (next [_] (some-> (.next it) map-entry)))))
+  IKVReduce
+  (kvreduce
+    [_ f init]
+    (.kvreduce ^IKVReduce m
+               (fn [x k v] (f x k (cond-> v (instance? BoxedValue v)
+                                            (deref-value))))
+               init))
   IEditableCollection
   (asTransient
     [_]

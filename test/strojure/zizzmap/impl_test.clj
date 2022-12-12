@@ -177,6 +177,8 @@
 
     (find -m :a) #_= [:a :x]
 
+    (reduce-kv (fn [x k v] (conj x k v)) [] -m) #_= [:a :x :b :y]
+
     )
 
   (testing "Value laziness"

@@ -209,6 +209,12 @@
       (reify Object
         (hasNext [_] (.hasNext ^HashMapIter it))
         (next [_] (some-> (.next ^HashMapIter it) map-entry)))))
+  IKVReduce
+  (-kv-reduce
+    [_ f init]
+    (-kv-reduce m (fn [x k v] (f x k (cond-> v (instance? BoxedValue v)
+                                               (deref-value))))
+                init))
   IEditableCollection
   (-as-transient
     [_]
