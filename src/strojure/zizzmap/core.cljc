@@ -23,9 +23,19 @@
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (defmacro assoc*
-  "Returns persistent map with delayed evaluations of the `expr` under the key `k`."
-  [m k expr]
-  `(impl/assoc* ~m ~k (impl/boxed-value ~expr)))
+  "Returns persistent map with delayed evaluations of the `expr` under the key
+  `k`. Accepts multiple key/expr pairs."
+  [m k expr & kvs]
+  `(-> ^clojure.lang.Associative (impl/internal-map ~m)
+       (assoc ~k (impl/boxed-value ~expr))
+       ~@(map (fn [[k v]] `(assoc ~k (impl/boxed-value ~v)))
+              (partition 2 2 [`(throw (IllegalArgumentException. "Requires even amount of keys/values"))] kvs))
+       (impl/persistent-map)))
+
+(comment
+  (macroexpand-1 '(assoc* {} :a 1))
+  (macroexpand-1 '(assoc* {} :a 1 :b 2))
+  )
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
