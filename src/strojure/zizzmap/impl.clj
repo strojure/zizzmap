@@ -283,12 +283,3 @@
   (instance? PersistentMap x))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-(defn assoc*
-  "Returns persistent map with assoc’ed boxed value."
-  [m k boxed-v]
-  (-> (internal-map m)
-      (assoc k boxed-v)
-      (persistent-map)))
-
-;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
