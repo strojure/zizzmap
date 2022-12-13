@@ -7,7 +7,7 @@
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (def -core {:a 1})
-(def -zizz (zizz/init {:a 1}))
+(def -zizz (zizz/init {:a (identity 1)}))
 (def -lazy (lazy/lazy-map {:a 1}))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -85,6 +85,12 @@
 ;   Execution time upper quantile : 3,541582 ns (97,5%)
 
 (zizz/init {:a 1})
+;             Execution time mean : 7,241391 ns
+;    Execution time std-deviation : 1,001237 ns
+;   Execution time lower quantile : 6,549447 ns ( 2,5%)
+;   Execution time upper quantile : 8,946173 ns (97,5%)
+
+(zizz/init {:a (identity 1)})
 ;             Execution time mean : 40,740169 ns
 ;    Execution time std-deviation : 5,418957 ns
 ;   Execution time lower quantile : 36,433236 ns ( 2,5%)

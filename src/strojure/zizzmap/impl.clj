@@ -24,9 +24,12 @@
   (deref [_] (.deref d)))
 
 (defmacro boxed-value
-  "Returns boxed delay for the `body`."
-  [& body]
-  `(BoxedValue. (delay ~@body)))
+  "Returns boxed delay for the `expr`. Does not box simple forms but only
+  non-empty sequences."
+  [expr]
+  (if (and (seqable? expr) (seq expr))
+    `(BoxedValue. (delay ~expr))
+    expr))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 

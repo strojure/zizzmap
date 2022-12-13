@@ -8,14 +8,22 @@
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 (defmacro init
-  "Returns persistent map with every value wrapped with delayed evaluation.
+  "Returns persistent map with every not simple value expression wrapped with
+  delayed evaluation.
 
-  Fir example in
+  For example in
 
       (def my-map (init {:a (doto :x println)}))
 
   the expression `(doto :x println)` will be evaluated only when value for `:a`
-  requested, i.e. in `(get my-map :a)`."
+  requested, i.e. in `(get my-map :a)`.
+
+  The value expression is considered simple if it is not non-empty sequence. So
+  in following case evaluation will not be delayed and initialization will be
+  faster:
+
+      (def my-map (init {:a 1}))
+  "
   [m]
   (assert map? m)
   `(impl/persistent-map ~(update-vals m (fn [v] `(impl/boxed-value ~v)))))
@@ -24,7 +32,8 @@
 
 (defmacro assoc*
   "Returns persistent map with delayed evaluations of the `expr` under the key
-  `k`. Accepts multiple key/expr pairs."
+  `k`. Accepts multiple key/expr pairs. Does not delay evaluation of simple
+  forms like constants and empty sequences."
   [m k expr & kvs]
   `(-> ^clojure.lang.Associative (impl/internal-map ~m)
        (assoc ~k (impl/boxed-value ~expr))
