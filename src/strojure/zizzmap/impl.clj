@@ -1,5 +1,5 @@
 (ns strojure.zizzmap.impl
-  (:import (clojure.lang IDeref IEditableCollection IFn IKVReduce IMapEntry IMeta IObj
+  (:import (clojure.lang Delay IDeref IEditableCollection IFn IKVReduce IMapEntry IMeta IObj
                          IPersistentMap IPersistentVector ITransientMap MapEntry
                          MapEquivalence RT)
            (java.util Iterator Map)))
@@ -19,17 +19,14 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(deftype BoxedValue [d])
+(deftype BoxedValue [^Delay d]
+  IDeref
+  (deref [_] (.deref d)))
 
 (defmacro boxed-value
   "Returns boxed delay for the `body`."
   [& body]
   `(BoxedValue. (delay ~@body)))
-
-(defn deref-value
-  "Returns value of the `BoxedValue` instance."
-  [v]
-  (.deref ^IDeref (.-d ^BoxedValue v)))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
@@ -45,13 +42,13 @@
        (.key e))
      (val
        [_]
-       (deref-value (.val e)))
+       (.deref ^IDeref (.val e)))
      (getKey
        [_]
        (.key e))
      (getValue
        [_]
-       (deref-value (.val e)))
+       (.deref ^IDeref (.val e)))
      IPersistentVector
      (count
        [_]
@@ -64,19 +61,19 @@
        (.containsKey e i))
      (valAt
        [_ i]
-       (cond-> (.valAt e i)
-         (= i 1) (deref-value)))
+       (cond-> ^IDeref (.valAt e i)
+         (= i 1) (.deref)))
      (valAt
        [_ i not-found]
-       (cond-> (.valAt e i not-found)
-         (= i 1) (deref-value)))
+       (cond-> ^IDeref (.valAt e i not-found)
+         (= i 1) (.deref)))
      (entryAt
        [_ i]
        (cond-> (.entryAt e i)
          (= i 1) (boxed-map-entry)))
      (cons
        [_ o]
-       [(.key e), (deref-value (.val e)), o])
+       [(.key e), (.deref ^IDeref (.val e)), o])
      (assoc
        [this i o]
        (if (int? i)
@@ -93,30 +90,30 @@
          (.assocN e i o)))
      (seq
        [_]
-       (lazy-seq (cons (.key e) (lazy-seq (cons (deref-value (.val e)) nil)))))
+       (lazy-seq (cons (.key e) (lazy-seq (cons (.deref ^IDeref (.val e)) nil)))))
      (rseq
        [_]
-       (rseq [(.key e) (deref-value (.val e))]))
+       (rseq [(.key e) (.deref ^IDeref (.val e))]))
      (nth
        [_ i]
-       (cond-> (.nth e i)
-         (= i 1) (deref-value)))
+       (cond-> ^IDeref (.nth e i)
+         (= i 1) (.deref)))
      (nth
        [_ i not-found]
-       (cond-> (.nth e i not-found)
-         (= i 1) (deref-value)))
+       (cond-> ^IDeref (.nth e i not-found)
+         (= i 1) (.deref)))
      (pop
        [_]
        [(.key e)])
      (peek
        [_]
-       (deref-value (.val e)))
+       (.deref ^IDeref (.val e)))
      (empty
        [_]
        (.empty e))
      (equiv
        [_ o]
-       (.equiv [(.key e) (deref-value (.val e))] o)))))
+       (.equiv [(.key e) (.deref ^IDeref (.val e))] o)))))
 
 (defn map-entry
   "Returns map entry, the standard one or the implementation for boxed value."
@@ -147,30 +144,30 @@
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+        (cond-> ^IDeref v (instance? BoxedValue v)
+                          (.deref)))))
   (invoke
     [_ k not-found]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+        (cond-> ^IDeref v (instance? BoxedValue v)
+                          (.deref)))))
   IPersistentMap
   (valAt
     [_ k]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+        (cond-> ^IDeref v (instance? BoxedValue v)
+                          (.deref)))))
   (valAt
     [_ k not-found]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+        (cond-> ^IDeref v (instance? BoxedValue v)
+                          (.deref)))))
   (entryAt
     [_ k]
     (map-entry (.entryAt m k)))
@@ -211,8 +208,8 @@
   (kvreduce
     [_ f init]
     (.kvreduce ^IKVReduce m
-               (fn [x k v] (f x k (cond-> v (instance? BoxedValue v)
-                                            (deref-value))))
+               (fn [x k v] (f x k (cond-> ^IDeref v (instance? BoxedValue v)
+                                                    (.deref))))
                init))
   IEditableCollection
   (asTransient
@@ -264,15 +261,15 @@
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+        (cond-> ^IDeref v (instance? BoxedValue v)
+                          (.deref)))))
   (valAt
     [_ k not-found]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+        (cond-> ^IDeref v (instance? BoxedValue v)
+                          (.deref)))))
   InternalAccess
   (internal-map
     [_]
