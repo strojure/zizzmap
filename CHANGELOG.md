@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## Version `1.2.32` on 2022-12-13
 
 - Implement toString method.
+- No delay for evaluation of simple forms.
 
 ## Version `1.1.26` on 2022-12-12
 
