@@ -17,17 +17,14 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(deftype BoxedValue [d])
+(deftype BoxedValue [d]
+  IDeref
+  (-deref [_] (-deref d)))
 
 (defmacro boxed-value
   "Returns boxed delay for the `body`."
   [& body]
   `(BoxedValue. (delay ~@body)))
-
-(defn deref-value
-  "Returns value of the `BoxedValue` instance."
-  [v]
-  (-deref (.-d ^BoxedValue v)))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
@@ -43,7 +40,7 @@
        (-key e))
      (-val
        [_]
-       (deref-value (-val e)))
+       (-deref (-val e)))
      ICounted
      (-count
        [_]
@@ -61,11 +58,11 @@
      (-lookup
        [_ i]
        (cond-> (-lookup e i)
-         (= i 1) (deref-value)))
+         (= i 1) (-deref)))
      (-lookup
        [_ i not-found]
        (cond-> (-lookup e i not-found)
-         (= i 1) (deref-value)))
+         (= i 1) (-deref)))
      IFind
      (-find
        [_ i]
@@ -74,7 +71,7 @@
      ICollection
      (-conj
        [_ o]
-       [(-key e), (deref-value (-val e)), o])
+       [(-key e), (-deref (-val e)), o])
      IVector
      (-assoc-n
        [this i o]
@@ -89,23 +86,23 @@
      ISeqable
      (-seq
        [_]
-       (lazy-seq (cons (-key e) (lazy-seq (cons (deref-value (-val e)) nil)))))
+       (lazy-seq (cons (-key e) (lazy-seq (cons (-deref (-val e)) nil)))))
      IReversible
      (-rseq
        [_]
-       (rseq [(-key e) (deref-value (-val e))]))
+       (rseq [(-key e) (-deref (-val e))]))
      IIndexed
      (-nth
        [_ i]
        (case i
          0 (-key e)
-         1 (deref-value (-val e))
+         1 (-deref (-val e))
          (-nth e i)))
      (-nth
        [_ i not-found]
        (case i
          0 (-key e)
-         1 (deref-value (-val e))
+         1 (-deref (-val e))
          not-found))
      IStack
      (-pop
@@ -113,7 +110,7 @@
        [(-key e)])
      (-peek
        [_]
-       (deref-value (-val e)))
+       (-deref (-val e)))
      IEmptyableCollection
      (-empty
        [_]
@@ -121,7 +118,7 @@
      IEquiv
      (-equiv
        [_ o]
-       (-equiv [(-key e) (deref-value (-val e))] o)))))
+       (-equiv [(-key e) (-deref (-val e))] o)))))
 
 (defn map-entry
   "Returns map entry, the standard one or the implementation for boxed value."
@@ -144,14 +141,14 @@
       (if (identical? NA v)
         nil
         (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+                  (-deref)))))
   (-invoke
     [_ k not-found]
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         not-found
         (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+                  (-deref)))))
   ILookup
   (-lookup
     [_ k]
@@ -159,14 +156,14 @@
       (if (identical? NA v)
         nil
         (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+                  (-deref)))))
   (-lookup
     [_ k not-found]
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         not-found
         (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+                  (-deref)))))
   IFind
   (-find
     [_ k]
@@ -213,7 +210,7 @@
   (-kv-reduce
     [_ f init]
     (-kv-reduce m (fn [x k v] (f x k (cond-> v (instance? BoxedValue v)
-                                               (deref-value))))
+                                               (-deref))))
                 init))
   IEditableCollection
   (-as-transient
@@ -230,7 +227,11 @@
   IMeta
   (-meta
     [_]
-    (-meta m)))
+    (-meta m))
+  IPrintWithWriter
+  (-pr-writer
+    [_ writer opts]
+    (-pr-writer (or realized! (set! realized! (into {} (map map-entry) m))) writer opts)))
 
 (defn persistent-map
   "Returns `IPersistentMap` implementation for the map `m` which can contain
@@ -266,14 +267,14 @@
       (if (identical? NA v)
         nil
         (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+                  (-deref)))))
   (-lookup
     [_ k not-found]
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         not-found
         (cond-> v (instance? BoxedValue v)
-                  (deref-value)))))
+                  (-deref)))))
   InternalAccess
   (internal-map
     [_]

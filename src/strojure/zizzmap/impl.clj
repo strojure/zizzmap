@@ -1,7 +1,7 @@
 (ns strojure.zizzmap.impl
   (:import (clojure.lang IDeref IEditableCollection IFn IKVReduce IMapEntry IMeta IObj
                          IPersistentMap IPersistentVector ITransientMap MapEntry
-                         MapEquivalence)
+                         MapEquivalence RT)
            (java.util Iterator Map)))
 
 (set! *warn-on-reflection* true)
@@ -229,7 +229,11 @@
   IMeta
   (meta
     [_]
-    (.meta ^IMeta m)))
+    (.meta ^IMeta m))
+  Object
+  (toString
+    [this]
+    (RT/printString this)))
 
 (defn persistent-map
   "Returns `IPersistentMap` implementation for the map `m` which can contain

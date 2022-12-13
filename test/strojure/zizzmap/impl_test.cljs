@@ -1,6 +1,6 @@
 (ns strojure.zizzmap.impl-test
   (:require [clojure.test :as test :refer [deftest testing]]
-            [strojure.zizzmap.impl :as impl]))
+            [strojure.zizzmap.impl :as impl :include-macros true]))
 
 (declare thrown?)
 
@@ -161,6 +161,8 @@
     (find -m :a) #_= [:a :x]
 
     (reduce-kv (fn [x k v] (conj x k v)) [] -m) #_= [:a :x :b :y]
+
+    (pr-str* -m) #_= "{:a :x, :b :y}"
 
     )
 

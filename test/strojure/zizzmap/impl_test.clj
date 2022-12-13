@@ -179,6 +179,8 @@
 
     (reduce-kv (fn [x k v] (conj x k v)) [] -m) #_= [:a :x :b :y]
 
+    (str -m) #_= "{:a :x, :b :y}"
+
     )
 
   (testing "Value laziness"
