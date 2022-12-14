@@ -231,7 +231,11 @@
   IPrintWithWriter
   (-pr-writer
     [_ writer opts]
-    (-pr-writer (or realized! (set! realized! (into {} (map map-entry) m))) writer opts)))
+    (-pr-writer (or realized! (set! realized! (into {} (map map-entry) m))) writer opts))
+  Object
+  (toString
+    [this]
+    (pr-str* this)))
 
 (defn persistent-map
   "Returns `IPersistentMap` implementation for the map `m` which can contain
