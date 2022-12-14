@@ -1,4 +1,4 @@
-(defproject com.github.strojure/zizzmap "1.3.33-SNAPSHOT"
+(defproject com.github.strojure/zizzmap "1.3.36"
   :description "Persistent maps with support for lazy values."
   :url "https://github.com/strojure/zizzmap"
   :license {:name "The MIT License" :url "http://opensource.org/licenses/MIT"}
