@@ -1,7 +1,7 @@
 (ns strojure.zizzmap.core-test
   (:require [clojure.test :as test :refer [deftest]]
-            [strojure.zizzmap.core :as zizz]
-            [strojure.zizzmap.impl :as impl]))
+            [strojure.zizzmap.core :as zizz :include-macros true]
+            [strojure.zizzmap.impl :as impl :include-macros true]))
 
 #?(:clj  (set! *warn-on-reflection* true)
    :cljs (set! *warn-on-infer* true))

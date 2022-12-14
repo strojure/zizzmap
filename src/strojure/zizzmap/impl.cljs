@@ -4,27 +4,35 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(defprotocol InternalAccess
-  (internal-map [_]
-    "Returns underlying map for low-level manipulations."))
+(defprotocol UnderlyingMap
+  (underlying-map [_]
+    "Returns normal map which can be wrapped with custom implementation."))
 
-(extend-protocol InternalAccess
-  nil,,,,,,,,,,,,,,, (internal-map [_] {})
-  ObjMap,,,,,,,,,,,, (internal-map [this] this)
-  PersistentArrayMap (internal-map [this] this)
-  PersistentHashMap, (internal-map [this] this)
-  ITransientMap,,,,, (internal-map [this] this))
+(extend-protocol UnderlyingMap
+  nil,,,,,,,,,,,,,,, (underlying-map [_] {})
+  ObjMap,,,,,,,,,,,, (underlying-map [this] this)
+  PersistentArrayMap (underlying-map [this] this)
+  PersistentHashMap, (underlying-map [this] this)
+  ITransientMap,,,,, (underlying-map [this] this))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(deftype BoxedValue [d]
-  IDeref
-  (-deref [_] (-deref d)))
+(deftype BoxedDelay [d]
+  IDeref (-deref [_] (-deref d))
+  IPending (-realized? [_] (-realized? d)))
 
-(defmacro boxed-value
+(defmacro boxed-delay
   "Returns boxed delay for the `body`."
   [& body]
-  `(BoxedValue. (delay ~@body)))
+  `(BoxedDelay. (delay ~@body)))
+
+(defmacro boxed-delay*
+  "Returns boxed delay for the `expr`. Does not box simple forms but only
+  non-empty sequences."
+  [expr]
+  (if (and (seqable? expr) (seq expr))
+    `(boxed-delay ~expr)
+    expr))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
@@ -77,7 +85,7 @@
        [this i o]
        (case i
          0 (boxed-map-entry o (-val e))
-         1 (if (instance? BoxedValue o)
+         1 (if (instance? BoxedDelay o)
              (boxed-map-entry (-key e) o)
              [(-key e) o])
          2 (-conj this o)
@@ -123,7 +131,7 @@
 (defn map-entry
   "Returns map entry, the standard one or the implementation for boxed value."
   [e]
-  (if (instance? BoxedValue (-val e))
+  (if (instance? BoxedDelay (-val e))
     (boxed-map-entry e)
     e))
 
@@ -140,14 +148,14 @@
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> v (instance? BoxedValue v)
+        (cond-> v (instance? BoxedDelay v)
                   (-deref)))))
   (-invoke
     [_ k not-found]
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> v (instance? BoxedValue v)
+        (cond-> v (instance? BoxedDelay v)
                   (-deref)))))
   ILookup
   (-lookup
@@ -155,14 +163,14 @@
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> v (instance? BoxedValue v)
+        (cond-> v (instance? BoxedDelay v)
                   (-deref)))))
   (-lookup
     [_ k not-found]
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> v (instance? BoxedValue v)
+        (cond-> v (instance? BoxedDelay v)
                   (-deref)))))
   IFind
   (-find
@@ -209,15 +217,15 @@
   IKVReduce
   (-kv-reduce
     [_ f init]
-    (-kv-reduce m (fn [x k v] (f x k (cond-> v (instance? BoxedValue v)
+    (-kv-reduce m (fn [x k v] (f x k (cond-> v (instance? BoxedDelay v)
                                                (-deref))))
                 init))
   IEditableCollection
   (-as-transient
     [_]
     (->TransientMap (-as-transient m)))
-  InternalAccess
-  (internal-map
+  UnderlyingMap
+  (underlying-map
     [_]
     m)
   IWithMeta
@@ -270,17 +278,17 @@
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> v (instance? BoxedValue v)
+        (cond-> v (instance? BoxedDelay v)
                   (-deref)))))
   (-lookup
     [_ k not-found]
     (let [v (-lookup m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> v (instance? BoxedValue v)
+        (cond-> v (instance? BoxedDelay v)
                   (-deref)))))
-  InternalAccess
-  (internal-map
+  UnderlyingMap
+  (underlying-map
     [_]
     m))
 
@@ -297,7 +305,7 @@
 (defn assoc*
   "Returns persistent map with assoc’ed boxed value."
   [m k boxed-v]
-  (-> (internal-map m)
+  (-> (underlying-map m)
       (assoc k boxed-v)
       (persistent-map)))
 

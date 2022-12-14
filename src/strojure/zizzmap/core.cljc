@@ -1,9 +1,23 @@
 (ns strojure.zizzmap.core
-  (:require [strojure.zizzmap.impl :as impl])
+  (:require [strojure.zizzmap.impl :as impl :include-macros true])
   #?(:cljs (:require-macros [strojure.zizzmap.core :refer [assoc*]])))
 
 #?(:clj  (set! *warn-on-reflection* true)
    :cljs (set! *warn-on-infer* true))
+
+;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+(defmacro delay*
+  "Returns customized delay for the `body` to be used as zizz-map values when
+  the map is constructed manually."
+  [& body]
+  `(impl/boxed-delay ~@body))
+
+(defn convert-map
+  "Converts any map to zizz map to allow access delayed values added explicitly."
+  [m]
+  (cond-> m (not (impl/persistent? m))
+            (-> impl/underlying-map impl/persistent-map)))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
@@ -26,7 +40,7 @@
   "
   [m]
   (assert map? m)
-  `(impl/persistent-map ~(update-vals m (fn [v] `(impl/boxed-value ~v)))))
+  `(impl/persistent-map ~(update-vals m (fn [v] `(impl/boxed-delay* ~v)))))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
@@ -35,9 +49,9 @@
   `k`. Accepts multiple key/expr pairs. Does not delay evaluation of simple
   forms like constants and empty sequences."
   [m k expr & kvs]
-  `(-> ^clojure.lang.Associative (impl/internal-map ~m)
-       (assoc ~k (impl/boxed-value ~expr))
-       ~@(map (fn [[k v]] `(assoc ~k (impl/boxed-value ~v)))
+  `(-> ^clojure.lang.Associative (impl/underlying-map ~m)
+       (assoc ~k (impl/boxed-delay* ~expr))
+       ~@(map (fn [[k v]] `(assoc ~k (impl/boxed-delay* ~v)))
               (partition 2 2 [`(throw (IllegalArgumentException. "Requires even amount of keys/values"))] kvs))
        (impl/persistent-map)))
 
@@ -51,7 +65,7 @@
 (defn merge*
   "Given two maps with possibly delayed values returns merged persistent map."
   [m1 m2]
-  (impl/persistent-map (reduce conj (impl/internal-map m1) (impl/internal-map m2))))
+  (impl/persistent-map (reduce conj (impl/underlying-map m1) (impl/underlying-map m2))))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 

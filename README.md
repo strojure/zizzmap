@@ -120,6 +120,24 @@ function `f` to map value.
 ;=> 2
 ```
 
+### `delay*`
+
+The map can be constructed manually using `delay*` and `convert-map`.
+
+```clojure
+(ns project.readme.core-05-delay
+  (:require [strojure.zizzmap.core :as zizz]))
+
+(def ^:private -map
+  (-> {:a (zizz/delay* (println "Init")
+                       1)}
+      (zizz/convert-map)))
+
+(get -map :a)
+;Init
+;=> 1
+```
+
 ## Performance
 
 See some benchmarks [here](test/project/benchmarks.clj).

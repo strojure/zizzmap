@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## Version `1.3.33-SNAPSHOT`
 
 - Complete implementation of toString in CLJS.
+- Add `delay*` and `convert-map` API functions.
 
 ## Version `1.2.32` on 2022-12-13
 

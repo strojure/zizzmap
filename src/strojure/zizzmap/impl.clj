@@ -1,6 +1,6 @@
 (ns strojure.zizzmap.impl
   (:import (clojure.lang Delay IDeref IEditableCollection IFn IKVReduce IMapEntry IMeta IObj
-                         IPersistentMap IPersistentVector ITransientMap MapEntry
+                         IPending IPersistentMap IPersistentVector ITransientMap MapEntry
                          MapEquivalence RT)
            (java.util Iterator Map)))
 
@@ -8,27 +8,32 @@
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(defprotocol InternalAccess
-  (internal-map [_]
-    "Returns underlying map for low-level manipulations."))
+(defprotocol UnderlyingMap
+  (underlying-map [_]
+    "Returns normal map which can be wrapped with custom implementation."))
 
-(extend-protocol InternalAccess
-  nil,,,,,,,,,,, (internal-map [_] {})
-  IPersistentMap (internal-map [this] this)
-  ITransientMap, (internal-map [this] this))
+(extend-protocol UnderlyingMap
+  nil,,,,,,,,,,, (underlying-map [_] {})
+  IPersistentMap (underlying-map [this] this)
+  ITransientMap, (underlying-map [this] this))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
-(deftype BoxedValue [^Delay d]
-  IDeref
-  (deref [_] (.deref d)))
+(deftype BoxedDelay [^Delay d]
+  IDeref (deref [_] (.deref d))
+  IPending (isRealized [_] (.isRealized d)))
 
-(defmacro boxed-value
+(defmacro boxed-delay
+  "Returns boxed delay for the `body`."
+  [& body]
+  `(BoxedDelay. (delay ~@body)))
+
+(defmacro boxed-delay*
   "Returns boxed delay for the `expr`. Does not box simple forms but only
   non-empty sequences."
   [expr]
   (if (and (seqable? expr) (seq expr))
-    `(BoxedValue. (delay ~expr))
+    `(boxed-delay ~expr)
     expr))
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -86,7 +91,7 @@
        [this i o]
        (case i
          0 (boxed-map-entry o (.val e))
-         1 (if (instance? BoxedValue o)
+         1 (if (instance? BoxedDelay o)
              (boxed-map-entry (.key e) o)
              [(.key e) o])
          2 (.cons this o)
@@ -121,7 +126,7 @@
 (defn map-entry
   "Returns map entry, the standard one or the implementation for boxed value."
   [^IMapEntry e]
-  (if (instance? BoxedValue (.val e))
+  (if (instance? BoxedDelay (.val e))
     (boxed-map-entry e)
     e))
 
@@ -147,14 +152,14 @@
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> ^IDeref v (instance? BoxedValue v)
+        (cond-> ^IDeref v (instance? BoxedDelay v)
                           (.deref)))))
   (invoke
     [_ k not-found]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> ^IDeref v (instance? BoxedValue v)
+        (cond-> ^IDeref v (instance? BoxedDelay v)
                           (.deref)))))
   IPersistentMap
   (valAt
@@ -162,14 +167,14 @@
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> ^IDeref v (instance? BoxedValue v)
+        (cond-> ^IDeref v (instance? BoxedDelay v)
                           (.deref)))))
   (valAt
     [_ k not-found]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> ^IDeref v (instance? BoxedValue v)
+        (cond-> ^IDeref v (instance? BoxedDelay v)
                           (.deref)))))
   (entryAt
     [_ k]
@@ -211,15 +216,15 @@
   (kvreduce
     [_ f init]
     (.kvreduce ^IKVReduce m
-               (fn [x k v] (f x k (cond-> ^IDeref v (instance? BoxedValue v)
+               (fn [x k v] (f x k (cond-> ^IDeref v (instance? BoxedDelay v)
                                                     (.deref))))
                init))
   IEditableCollection
   (asTransient
     [_]
     (->TransientMap (.asTransient ^IEditableCollection m)))
-  InternalAccess
-  (internal-map
+  UnderlyingMap
+  (underlying-map
     [_]
     m)
   IObj
@@ -264,17 +269,17 @@
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         nil
-        (cond-> ^IDeref v (instance? BoxedValue v)
+        (cond-> ^IDeref v (instance? BoxedDelay v)
                           (.deref)))))
   (valAt
     [_ k not-found]
     (let [v (.valAt m k NA)]
       (if (identical? NA v)
         not-found
-        (cond-> ^IDeref v (instance? BoxedValue v)
+        (cond-> ^IDeref v (instance? BoxedDelay v)
                           (.deref)))))
-  InternalAccess
-  (internal-map
+  UnderlyingMap
+  (underlying-map
     [_]
     m))
 
