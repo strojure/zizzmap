@@ -4,14 +4,14 @@ Persistent map with lazily evaluated values for Clojure(Script).
 
 [![cljdoc badge](https://cljdoc.org/badge/com.github.strojure/zizzmap)](https://cljdoc.org/d/com.github.strojure/zizzmap)
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.strojure/zizzmap.svg)](https://clojars.org/com.github.strojure/zizzmap)
+![Deprecated](https://img.shields.io/badge/status-deprecated-red)
 
 `zizz` (noun) A nap.
 
 ## Status
 
-**DEPRECATED.** 
-
-Use https://github.com/strojure/zmap with more explicit API and practical naming.
+**DEPRECATED.** Use https://github.com/strojure/zmap with more explicit API and
+practical naming.
 
 ---
 
