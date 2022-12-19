@@ -7,6 +7,14 @@ Persistent map with lazily evaluated values for Clojure(Script).
 
 `zizz` (noun) A nap.
 
+## Status
+
+**DEPRECATED.** 
+
+Use https://github.com/strojure/zmap with more explicit API and practical naming.
+
+---
+
 ## Motivation
 
 * Access map values with delayed evaluation as ordinary map values.
