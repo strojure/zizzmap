@@ -4,7 +4,7 @@ Persistent map with lazily evaluated values for Clojure(Script).
 
 [![cljdoc badge](https://cljdoc.org/badge/com.github.strojure/zizzmap)](https://cljdoc.org/d/com.github.strojure/zizzmap)
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.strojure/zizzmap.svg)](https://clojars.org/com.github.strojure/zizzmap)
-![Deprecated](https://img.shields.io/badge/status-deprecated-red)
+[![Deprecated](https://img.shields.io/badge/status-deprecated-red)](https://github.com/strojure/zmap)
 
 `zizz` (noun) A nap.
 
